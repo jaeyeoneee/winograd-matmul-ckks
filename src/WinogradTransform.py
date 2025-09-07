@@ -80,20 +80,20 @@ class WinogradTransform:
         """F(4,3) transform matrices (simplified version)"""
         # Simplified F(4,3) matrices - in practice these would be optimized
         B_T = np.array([
-            [1,  0,  0,  0, -1,  0],
-            [0,  1, -1,  1,  1,  0],
-            [0, -1, -1, -1,  1,  0],
-            [0,  1,  0, -1,  0,  0],
-            [0, -1,  0,  1,  0,  0],
-            [0,  0,  1,  0,  0, -1]
+        [4, 0, -5, 0, 1, 0],
+        [0, -4, -4, 1, 1,0],
+        [0, 4, -4, -1, 1,0],
+        [0,-2, -1,  2, 1,0],
+        [0, 2, -1, -2, 1,0],
+        [0, 4,  0, -5, 0,1]
         ], dtype=np.float64)
         
         G = np.array([
-            [1,     0,     0],
-            [2/3,   2/3,   2/3],
-            [2/3,  -2/3,   2/3],
-            [1/6,   1/3,   2/3],
-            [1/6,  -1/3,   2/3],
+            [1/4,     0,     0],
+            [-1/6,   -1/6,   -1/6],
+            [-1/6,  1/6,   -1/6],
+            [1/24,   1/12,   1/6],
+            [1/24,  -1/12,   1/6],
             [0,     0,     1]
         ], dtype=np.float64)
         
@@ -291,122 +291,3 @@ class WinogradTransform:
             "reduction_factor": reduction,
             "savings_percent": 100 * reduction
         }
-
-# Test the implementation - COMPLETELY REWRITTEN
-def test_winograd_transform():
-    """Test basic Winograd transform functionality"""
-    print("=== Testing Winograd Transform Implementation ===\n")
-    
-    # Test F(2,3) configuration
-    print("1. Testing F(2,3) configuration:")
-    winograd_2_3 = WinogradTransform(m=2, r=3)
-    
-    print(f"\n2. Testing individual transforms:")
-    # FIXED: Use correct variable names and sizes
-    transform_size = 4  # m + r - 1 = 2 + 3 - 1 = 4
-    filter_size = 3     # r = 3
-    
-    print(f"Transform domain size: {transform_size}×{transform_size}")
-    print(f"Filter size: {filter_size}×{filter_size}")
-    
-    # FIXED: Create test data with CORRECT sizes
-    test_input = np.random.randn(transform_size, transform_size)  # 4×4
-    test_weight = np.random.randn(filter_size, filter_size)      # 3×3 ← THIS WAS THE BUG!
-    
-    print(f"Test input shape: {test_input.shape}")
-    print(f"Test weight shape: {test_weight.shape}")
-    
-    # Apply transforms
-    x_transformed = winograd_2_3.forward_transform_input(test_input)
-    w_transformed = winograd_2_3.forward_transform_weight(test_weight)
-    
-    print(f"Input transform: {test_input.shape} -> {x_transformed.shape}")
-    print(f"Weight transform: {test_weight.shape} -> {w_transformed.shape}")
-    
-    # Element-wise multiplication
-    y_transformed = x_transformed * w_transformed
-    print(f"Element-wise mult: {y_transformed.shape}")
-    print(f"Number of multiplications: {winograd_2_3.m + winograd_2_3.r - 1} (vs direct: {winograd_2_3.m * winograd_2_3.r})")
-    
-    # Inverse transform
-    y_output = winograd_2_3.inverse_transform(y_transformed)
-    print(f"Inverse transform: {y_transformed.shape} -> {y_output.shape}")
-    
-    # Verification test
-    print(f"\n3. Verification test:")
-    is_correct = winograd_2_3.verify_correctness()
-    print(f"Transform correctness: {'✓ PASS' if is_correct else '✗ FAIL'}")
-    
-    # Demonstration of benefits
-    print(f"\n4. Winograd benefit demonstration:")
-    benefits = winograd_2_3.demonstrate_winograd_benefit()
-    for key, value in benefits.items():
-        if isinstance(value, float):
-            if 'factor' in key or 'reduction' in key:
-                print(f"{key}: {value:.1%}")
-            else:
-                print(f"{key}: {value:.2f}")
-        else:
-            print(f"{key}: {value}")
-    
-    # Try F(4,3) configuration
-    try:
-        print(f"\n5. Testing F(4,3) configuration:")
-        winograd_4_3 = WinogradTransform(m=4, r=3)
-        
-        # FIXED: Use correct sizes for F(4,3)
-        transform_size_43 = 6  # 4 + 3 - 1 = 6
-        filter_size_43 = 3     # 3
-        
-        test_input_43 = np.random.randn(transform_size_43, transform_size_43)  # 6×6
-        test_weight_43 = np.random.randn(filter_size_43, filter_size_43)      # 3×3
-        
-        x_trans_43 = winograd_4_3.forward_transform_input(test_input_43)
-        w_trans_43 = winograd_4_3.forward_transform_weight(test_weight_43)
-        
-        print(f"F(4,3) input transform: {test_input_43.shape} -> {x_trans_43.shape}")
-        print(f"F(4,3) weight transform: {test_weight_43.shape} -> {w_trans_43.shape}")
-        
-        # Verification test
-        print(f"\n3. Verification test:")
-        is_correct = winograd_2_3.verify_correctness()
-        print(f"Transform correctness: {'✓ PASS' if is_correct else '✗ FAIL'}")
-   
-        benefits_43 = winograd_4_3.demonstrate_winograd_benefit()
-        print(f"F(4,3) reduction: {benefits_43['reduction_factor']:.1%}")
-        
-    except Exception as e:
-        print(f"F(4,3) test failed: {e}")
-    
-    # Operation count analysis
-    print("\n6. Operation count analysis:")
-    ops = winograd_2_3.count_operations((2, 32, 3))
-    for key, value in ops.items():
-        if isinstance(value, float):
-            print(f"{key}: {value:.2f}")
-        else:
-            print(f"{key}: {value}")
-    
-    # Test small matrix multiplication example
-    print(f"\n7. Small matrix multiplication example:")
-    try:
-        small_x = np.random.randn(2, 4)
-        small_w = np.random.randn(4, 3)
-        direct_result = small_x @ small_w
-        
-        print(f"Direct multiplication: {small_x.shape} @ {small_w.shape} = {direct_result.shape}")
-        print(f"This demonstrates the target for Winograd optimization")
-        
-        direct_ops = 2 * 4 * 3
-        winograd_ops = 4 * (2 + 3 - 1)
-        savings = 1 - (winograd_ops / direct_ops)
-        print(f"Theoretical savings: {direct_ops} -> {winograd_ops} ops ({savings:.1%} reduction)")
-        
-    except Exception as e:
-        print(f"Small matrix test failed: {e}")
-    
-    return winograd_2_3
-
-# Run the test
-if __name__ == "__main__":
-    winograd_transform = test_winograd_transform()

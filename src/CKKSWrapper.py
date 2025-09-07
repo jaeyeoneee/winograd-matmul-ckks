@@ -356,6 +356,22 @@ def test_ckks_wrapper():
     print(f"Second diagonal: {second_diagonal} (should be [2, 6, 7])")
     print(f"Third diagonal: {third_diagonal} (should be [3, 4, 8])")
     
+    print("tile decomposition test")
+    matrix = np.arange(6*6).reshape(6,6)
+    print(f"input matrix: {matrix}")
+    
+    flatten = ckks.pack_winograd_tiles(matrix=matrix, tile_m=3, tile_r=3)
+    print(f"len flattened ciphertexts: {len(flatten)}")
+    
+    first_flatten = ckks.decrypt_and_decode(flatten[0], 9)
+    second_flatten = ckks.decrypt_and_decode(flatten[1], 9)
+    third_flatten = ckks.decrypt_and_decode(flatten[2], 9)
+    forth_flatten = ckks.decrypt_and_decode(flatten[3], 9)
+    print(f"first flatten: {first_flatten}")
+    print(f"second flatten: {second_flatten}")
+    print(f"third flatten: {third_flatten}")
+    print(f"forth flatten: {forth_flatten}")
+    
     # Print final stats
     ckks.print_stats()
     

@@ -367,6 +367,8 @@ def test_winograd_transform():
         print(f"F(4,3) input transform: {test_input_43.shape} -> {x_trans_43.shape}")
         print(f"F(4,3) weight transform: {test_weight_43.shape} -> {w_trans_43.shape}")
         
+        assert winograd_4_3.verify_correctness()
+        
         benefits_43 = winograd_4_3.demonstrate_winograd_benefit()
         print(f"F(4,3) reduction: {benefits_43['reduction_factor']:.1%}")
         
